@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,21 +24,59 @@ public class OpossumBehaviour : MonoBehaviour
     public bool isGroundAhead;
     public bool onRamp;
     public RampDirection rampDirection;
-   
+    public Transform LOS;
+    
+
+    public Collider2D collidesWith;
+
+    public ContactFilter2D contactFilter;
+
+    public List<Collider2D> colliders;
+    public BoxCollider2D LosCollider;
+
+    public LOS los;
+
+    [Header("Bullet Firing")]
+    public int fireDelay;
 
     // Start is called before the first frame update
     void Start()
     {
         rigidbody2D = GetComponent<Rigidbody2D>();
         rampDirection = RampDirection.NONE;
+
+        colliders = new List<Collider2D>();
+        
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        _HasLOS();
         _LookInFront();
         _LookAhead();
         _Move();
+    }
+
+    public bool _HasLOS()
+    {
+        Physics2D.GetContacts(LosCollider, contactFilter, colliders);
+        collidesWith = los.collidesWith;
+
+        if(collidesWith.gameObject.name == "Player" && colliders[0].gameObject.name == "Player")
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void _FireBullet()
+    {
+        // delay bullet firing 
+        if (Time.frameCount % fireDelay == 0 && BulletManager.Instance().HasBullets())
+        {
+            BulletManager.Instance().GetBullet(transform.position, transform.localScale);
+        }
     }
 
     private void _LookInFront()
